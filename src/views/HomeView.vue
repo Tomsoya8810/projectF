@@ -151,151 +151,151 @@ export default {
     },
     async goreview() {
       this.page = 4;
-      if (this.syutokuOther.length === 0) {
-        const auth = getAuth();
-        const userRef = doc(db, "users", auth.currentUser.uid);
-        const docSnap = await getDoc(userRef);
-        this.alreadyLikedPosts = docSnap.data().likedPosts;
-        this.alreadyFollowUsers = docSnap.data().followUsers;
-        const q = query(
-          collection(db, "posts"),
-          where("user", "!=", auth.currentUser.uid)
-        );
-        const querySnapshot = await getDocs(q);
-        querySnapshot.forEach((e) => {
-          // doc.data() is never undefined for query doc snapshots
-          this.syutokuOther.unshift(e.data());
-          const postData = {
-            // comment: this.syutokuOther[0].comment,
-            content: this.syutokuOther[0].content,
-            index: this.syutokuOther[0].index,
-            title: this.syutokuOther[0].title,
-            user: this.syutokuOther[0].user,
-            likedCount: this.syutokuOther[0].likedCount,
-          };
-          // const number = postData.index;
-          let varIsLike = this.alreadyLikedPosts.some((e) => {
-            return e.index == postData.index;
-          });
-          const other = document.getElementById("other");
-          const postCard = document.createElement("div");
-          const postTitle = document.createElement("h3");
-          postTitle.textContent = "タイトル：" + postData.title;
-          const postContent = document.createElement("h4");
-          postContent.textContent = "本文：" + postData.content;
-          const postUser = document.createElement("h4");
-          postUser.textContent = "投稿者：" + postData.user;
-          const followButton = document.createElement("button");
-          followButton.textContent = "フォロー";
-          let isFollow = this.alreadyFollowUsers.some((e) => {
-            return e == postData.user;
-          });
-          const followState = document.createElement("h4");
-          followState.textContent = isFollow;
-          followButton.onclick = function () {
-            isFollow = !isFollow;
-            followState.textContent = isFollow;
-            if (isFollow == true) {
-              if (
-                this.alreadyFollowUsers.some((e) => {
-                  return e == postData.user;
-                })
-              ) {
-                this.removeFollowUsers = this.removeFollowUsers.filter((e) => {
-                  return JSON.stringify(e) !== JSON.stringify(postData.user);
-                });
-              } else {
-                this.newFollowUsers.push(postData.user);
-              }
-            } else {
-              if (
-                this.alreadyFollowUsers.some((e) => {
-                  return e == postData.user;
-                })
-              ) {
-                this.removeFollowUsers.push(postData.user);
-              } else {
-                this.newFollowUsers = this.newFollowUsers.filter((e) => {
-                  return JSON.stringify(e) !== JSON.stringify(postData.user);
-                });
-              }
-            }
-          }.bind(this);
-          const postLIkedCount = document.createElement("h4");
-          postLIkedCount.textContent = "いいね" + postData.likedCount;
-          const likeButton = document.createElement("button");
-          const isLike = document.createElement("h4");
-          likeButton.textContent = "いいね";
-          isLike.textContent = varIsLike;
-          likeButton.onclick = function () {
-            varIsLike = !varIsLike;
-            isLike.textContent = varIsLike;
-            if (varIsLike === true) {
-              if (
-                this.alreadyLikedPosts.some((e) => {
-                  return e.index == postData.index;
-                })
-              ) {
-                this.removeLikedPosts = this.removeLikedPosts.filter((e) => {
-                  return JSON.stringify(e) !== JSON.stringify(postData);
-                });
-              } else {
-                this.newLikedPosts.push(postData);
-              }
-            } else {
-              if (
-                this.alreadyLikedPosts.some((e) => {
-                  return e.index == postData.index;
-                })
-              ) {
-                this.removeLikedPosts.push(postData);
-              } else {
-                this.newLikedPosts = this.newLikedPosts.filter((e) => {
-                  return JSON.stringify(e) !== JSON.stringify(postData);
-                });
-              }
-            }
-            console.log(this.removeLikedPosts);
-          }.bind(this);
-          // 表示エリア
-          // const commentArea = document.createElement("div");
-          // const commentLog = document.createElement("div");
-          // const commentInput = document.createElement("textarea");
-          // const commentButton = document.createElement("button");
-          // commentButton.textContent = "コメントする";
-          // const comments = this.syutokuOther[0].comment;
-          // commentLog.textContent = comments;
-          // commentButton.onclick = async function () {
-          //   comments.push(commentInput.value);
-          //   commentLog.textContent = comments;
-          //   const comRef = doc(db, "posts", `post${number}`);
-          //   await updateDoc(comRef, {
-          //     comment: arrayUnion(commentInput.value),
-          //   });
-          //   commentInput.value = "";
-          // };
-          // // コメントエリア
-          // commentArea.append(commentInput, commentButton, commentLog);
-          postCard.append(
-            postTitle,
-            postContent,
-            postUser,
-            followButton,
-            followState,
-            // commentArea,
-            postLIkedCount,
-            likeButton,
-            isLike
-          );
-          other.append(postCard);
-        });
-      }
     },
     test() {
       this.$router.push("/NewPage");
     },
   },
   mounted() {
+    if (this.syutokuOther.length === 0) {
+      const auth = getAuth();
+      const userRef = doc(db, "users", auth.currentUser.uid);
+      const docSnap = getDoc(userRef);
+      this.alreadyLikedPosts = docSnap.data().likedPosts;
+      this.alreadyFollowUsers = docSnap.data().followUsers;
+      const q = query(
+        collection(db, "posts"),
+        where("user", "!=", auth.currentUser.uid)
+      );
+      const querySnapshot = getDocs(q);
+      querySnapshot.forEach((e) => {
+        // doc.data() is never undefined for query doc snapshots
+        this.syutokuOther.unshift(e.data());
+        const postData = {
+          // comment: this.syutokuOther[0].comment,
+          content: this.syutokuOther[0].content,
+          index: this.syutokuOther[0].index,
+          title: this.syutokuOther[0].title,
+          user: this.syutokuOther[0].user,
+          likedCount: this.syutokuOther[0].likedCount,
+        };
+        // const number = postData.index;
+        let varIsLike = this.alreadyLikedPosts.some((e) => {
+          return e.index == postData.index;
+        });
+        const other = document.getElementById("other");
+        const postCard = document.createElement("div");
+        const postTitle = document.createElement("h3");
+        postTitle.textContent = "タイトル：" + postData.title;
+        const postContent = document.createElement("h4");
+        postContent.textContent = "本文：" + postData.content;
+        const postUser = document.createElement("h4");
+        postUser.textContent = "投稿者：" + postData.user;
+        const followButton = document.createElement("button");
+        followButton.textContent = "フォロー";
+        let isFollow = this.alreadyFollowUsers.some((e) => {
+          return e == postData.user;
+        });
+        const followState = document.createElement("h4");
+        followState.textContent = isFollow;
+        followButton.onclick = function () {
+          isFollow = !isFollow;
+          followState.textContent = isFollow;
+          if (isFollow == true) {
+            if (
+              this.alreadyFollowUsers.some((e) => {
+                return e == postData.user;
+              })
+            ) {
+              this.removeFollowUsers = this.removeFollowUsers.filter((e) => {
+                return JSON.stringify(e) !== JSON.stringify(postData.user);
+              });
+            } else {
+              this.newFollowUsers.push(postData.user);
+            }
+          } else {
+            if (
+              this.alreadyFollowUsers.some((e) => {
+                return e == postData.user;
+              })
+            ) {
+              this.removeFollowUsers.push(postData.user);
+            } else {
+              this.newFollowUsers = this.newFollowUsers.filter((e) => {
+                return JSON.stringify(e) !== JSON.stringify(postData.user);
+              });
+            }
+          }
+        }.bind(this);
+        const postLIkedCount = document.createElement("h4");
+        postLIkedCount.textContent = "いいね" + postData.likedCount;
+        const likeButton = document.createElement("button");
+        const isLike = document.createElement("h4");
+        likeButton.textContent = "いいね";
+        isLike.textContent = varIsLike;
+        likeButton.onclick = function () {
+          varIsLike = !varIsLike;
+          isLike.textContent = varIsLike;
+          if (varIsLike === true) {
+            if (
+              this.alreadyLikedPosts.some((e) => {
+                return e.index == postData.index;
+              })
+            ) {
+              this.removeLikedPosts = this.removeLikedPosts.filter((e) => {
+                return JSON.stringify(e) !== JSON.stringify(postData);
+              });
+            } else {
+              this.newLikedPosts.push(postData);
+            }
+          } else {
+            if (
+              this.alreadyLikedPosts.some((e) => {
+                return e.index == postData.index;
+              })
+            ) {
+              this.removeLikedPosts.push(postData);
+            } else {
+              this.newLikedPosts = this.newLikedPosts.filter((e) => {
+                return JSON.stringify(e) !== JSON.stringify(postData);
+              });
+            }
+          }
+          console.log(this.removeLikedPosts);
+        }.bind(this);
+        // 表示エリア
+        // const commentArea = document.createElement("div");
+        // const commentLog = document.createElement("div");
+        // const commentInput = document.createElement("textarea");
+        // const commentButton = document.createElement("button");
+        // commentButton.textContent = "コメントする";
+        // const comments = this.syutokuOther[0].comment;
+        // commentLog.textContent = comments;
+        // commentButton.onclick = async function () {
+        //   comments.push(commentInput.value);
+        //   commentLog.textContent = comments;
+        //   const comRef = doc(db, "posts", `post${number}`);
+        //   await updateDoc(comRef, {
+        //     comment: arrayUnion(commentInput.value),
+        //   });
+        //   commentInput.value = "";
+        // };
+        // // コメントエリア
+        // commentArea.append(commentInput, commentButton, commentLog);
+        postCard.append(
+          postTitle,
+          postContent,
+          postUser,
+          followButton,
+          followState,
+          // commentArea,
+          postLIkedCount,
+          likeButton,
+          isLike
+        );
+        other.append(postCard);
+      });
+    }
     const auth = getAuth();
     onAuthStateChanged(auth, (user) => {
       if (user) {
