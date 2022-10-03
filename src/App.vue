@@ -1,15 +1,42 @@
 <template>
-  <img alt="Vue logo" src="./assets/logo.png" />
-  <HelloWorld msg="Welcome to Your Vue.js App" />
+  <nav>
+    <router-link to="/">Home</router-link> |
+    <router-link to="/SignIn" v-if="logStatus === false">SignIn</router-link>
+    <div v-else style="display: inline" @:click="signOut">SignOut</div>
+  </nav>
+  <router-view />
 </template>
 
 <script>
-import HelloWorld from "./components/HelloWorld.vue";
+import { getAuth, onAuthStateChanged, signOut } from "@firebase/auth";
 
 export default {
-  name: "App",
-  components: {
-    HelloWorld,
+  data() {
+    return {
+      logStatus: false,
+    };
+  },
+  methods: {
+    signOut() {
+      const auth = getAuth();
+      signOut(auth)
+        .then(() => {
+          alert("サインアウト");
+        })
+        .catch((error) => {
+          alert(error.message);
+        });
+    },
+  },
+  mounted() {
+    const auth = getAuth();
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        this.logStatus = true;
+      } else {
+        this.logStatus = false;
+      }
+    });
   },
 };
 </script>
@@ -21,6 +48,22 @@ export default {
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
   color: #2c3e50;
-  margin-top: 60px;
+}
+
+nav {
+  padding: 30px;
+}
+
+nav a,
+nav div {
+  font-weight: bold;
+  color: #2c3e50;
+  margin-left: 20px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+nav a.router-link-exact-active {
+  color: #42b983;
 }
 </style>
