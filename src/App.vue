@@ -1,9 +1,4 @@
 <template>
-  <nav>
-    <router-link to="/">Home</router-link> |
-    <router-link to="/SignIn" v-if="logStatus === false">SignIn</router-link>
-    <div v-else style="display: inline" @:click="signOut">SignOut</div>
-  </nav>
   <router-view />
 </template>
 
@@ -42,12 +37,29 @@ export default {
 </script>
 
 <style>
+*,
+::after,
+::before {
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  padding-bottom: 0;
+}
+
+body {
+  margin: 0;
+}
+
 #app {
   font-family: Avenir, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   text-align: center;
-  color: #2c3e50;
+  color: #fff;
+  background-color: #a9a9a9;
+  background-size: cover;
 }
 
 nav {
@@ -57,7 +69,6 @@ nav {
 nav a,
 nav div {
   font-weight: bold;
-  color: #2c3e50;
   margin-left: 20px;
   text-decoration: underline;
   cursor: pointer;
