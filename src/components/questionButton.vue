@@ -77,7 +77,7 @@ export default {
   height: calc(100vh - 100px);
   overflow: scroll;
   position: fixed;
-  top: 50px;
+  top: 20vh;
   right: 5vw;
   color: white;
   background-color: rgba(30, 30, 30, 0.5);
@@ -92,6 +92,6 @@ export default {
 .isShow {
   display: block;
   transition-duration: 1s;
-  z-index: 2;
+  z-index: 10;
 }
 </style>

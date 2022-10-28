@@ -42,7 +42,7 @@
         </div>
         <div id="mine"></div>
       </div>
-      <div :style="{ display: isRankShow }">
+      <div :style="{ display: isRankShow }" class="mydata">
         <div class="title-box">
           <h1 class="title">Mydata</h1>
         </div>
@@ -51,15 +51,17 @@
             <div class="profile-area-head">
               <h3>Profile</h3>
               <h4>プロフィール</h4>
+              <div class="edit-button button" @:click="edit">
+                <div class="button-in-box">
+                  <h4>編 集</h4>
+                  <h6>E d i t</h6>
+                </div>
+              </div>
             </div>
             <div class="profile-area-content">
               <div class="profile-name-box">
                 <h3>Name</h3>
                 <input type="text" class="name-input" />
-                <div class="edit-button button" @:click="edit">
-                  <h4>編 集</h4>
-                  <h6>E d i t</h6>
-                </div>
               </div>
               <div class="profile-message-box">
                 <h3>message</h3>
@@ -69,10 +71,6 @@
                   rows="2"
                   class="message-input"
                 ></textarea>
-                <div class="edit-button button" @:click="edit">
-                  <h4>編 集</h4>
-                  <h6>E d i t</h6>
-                </div>
               </div>
             </div>
           </div>
@@ -83,7 +81,9 @@
             </div>
             <div class="rank-area-content">
               <h3>共感{{ rankPoints }}ゲット！！</h3>
-              <div class="rank-show-box">あなたのランクは{{ grade }}です</div>
+              <div class="rank-show-box">
+                <h4>あなたのランクは<br />{{ grade }}<br />です</h4>
+              </div>
             </div>
           </div>
         </div>
@@ -958,5 +958,185 @@ export default {
 .follow-area {
   display: flex;
   align-items: center;
+}
+
+/* ここからmydata */
+.mydata {
+  height: 76vh;
+}
+.mydata-box {
+  height: 55vh;
+  margin: 5.7vh auto 0 auto;
+  width: 80vw;
+  border: white solid 2px;
+  border-radius: 10vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.profile-area h3,
+.profile-area h4,
+.profile-area h6,
+.profile-area input {
+  display: block;
+}
+.profile-area,
+.profile-name-box,
+.profile-message-box,
+.rank-area {
+  display: flex;
+  justify-content: flex-start;
+}
+.profile-area-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.profile-area {
+  height: 35vh;
+  position: relative;
+}
+.profile-area::after {
+  content: "";
+  display: block;
+  background-color: #fff;
+  width: 70vw;
+  height: 0.2vh;
+  position: absolute;
+  left: 5vh;
+  top: calc(100% + 1vw);
+}
+.profile-area-head,
+.rank-area-head {
+  margin-top: 5vh;
+  margin-left: 5vh;
+  position: relative;
+}
+.profile-area-content,
+.rank-area-content {
+  margin-top: 5vh;
+  margin-right: 5vh;
+  margin-left: 10vh;
+}
+.profile-area-head h3,
+.rank-area-head h3 {
+  font-size: 4vw;
+}
+.profile-area-head h3::after,
+.rank-area-head h3::after {
+  content: "";
+  display: block;
+  background-color: #fff;
+  width: 12vw;
+  height: 0.2vh;
+  margin: 1vh auto 1vh auto;
+}
+.profile-area-head h4,
+.rank-area-head h4 {
+  font-size: 1vw;
+}
+.profile-area-head::after {
+  content: "";
+  display: block;
+  background-color: #fff;
+  width: 0.3vw;
+  height: calc(25vh);
+  margin-left: auto;
+  margin-right: auto;
+  position: absolute;
+  top: 0;
+  left: calc(100% + 5vh);
+}
+.profile-name-box,
+.profile-message-box {
+  align-items: center;
+}
+.profile-message-box {
+  margin-top: 8vh;
+}
+.profile-name-box h3,
+.profile-message-box h3 {
+  font-size: 3vw;
+  margin-right: 3vw;
+}
+.name-input {
+  width: 25vw;
+}
+.message-input {
+  width: 22vw;
+}
+.edit-button {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 14vh;
+  height: 9vh;
+  background-color: #3c3c3c;
+  color: #fff;
+  margin-top: 1.5vh;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0.5vh;
+  border-radius: 2vh;
+}
+.edit-button h4 {
+  display: inline-block;
+  margin: 0;
+  margin-top: 1vh;
+  font-size: 2vh;
+  line-height: 1.25vh;
+}
+.edit-button h4::after {
+  content: "";
+  display: inline-block;
+  background-color: #fff;
+  width: 10vh;
+  height: 1px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 0vh;
+}
+.edit-button h6 {
+  display: inline-block;
+  margin: 0;
+  margin-bottom: 1vh;
+  font-size: 1.25vh;
+  letter-spacing: 0.1em;
+}
+.rank-area-head::after {
+  content: "";
+  display: block;
+  background-color: #fff;
+  width: 0.3vw;
+  height: calc(12vh);
+  margin-left: auto;
+  margin-right: auto;
+  position: absolute;
+  top: 0;
+  left: calc(100% + 5vh);
+}
+.rank-area {
+  height: 20vh;
+  margin-bottom: 5vh;
+}
+.rank-area-content {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+.rank-area-content h3 {
+  display: block;
+  font-size: 3vw;
+}
+.rank-show-box {
+  margin-left: 10vw;
+  border: #fff solid 1px;
+  border-radius: 3vw;
+  padding: 1.5vw;
+}
+.rank-area-content h4 {
+  font-size: 2vh;
+  text-align: left;
+  line-height: 2;
 }
 </style>
