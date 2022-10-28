@@ -88,9 +88,14 @@
           </div>
         </div>
       </div>
-      <div :style="{ display: isReviewShow }">
+      <div :style="{ display: isReviewShow }" class="review">
         <div class="title-box">
           <h1 class="title">Review</h1>
+        </div>
+        <div class="follow-or-all button" @click="onlyFollow">
+          <h4 class="follow" id="is-follow-text">
+            フォローユーザーの<br />投稿のみを見る
+          </h4>
         </div>
         <div id="other"></div>
       </div>
@@ -144,6 +149,7 @@ export default {
       isRankShow: "none",
       isReviewShow: "none",
       unmountedOnce: true,
+      isOnlyFollow: false,
       changeLikeAndFollow: function () {
         if (
           this.logStatus === true &&
@@ -372,7 +378,7 @@ export default {
         });
         const other = document.getElementById("other");
         const postCard = document.createElement("div");
-        postCard.classList.add("post-box");
+        postCard.classList.add("review-post-box");
         //こ
         //こ
         //か
@@ -575,6 +581,7 @@ export default {
           otherArea
           // deleteButton,
         );
+        postCard.classList.add(`${postData.user}`);
         //こ
         //こ
         //ま
@@ -584,6 +591,31 @@ export default {
         //ー
         other.append(postCard);
       });
+    },
+    onlyFollow() {
+      let posts = document.querySelectorAll(`.review-post-box`);
+      const isFollowText = document.querySelector(`#is-follow-text`);
+      if (this.isOnlyFollow === false) {
+        posts.forEach((e) => {
+          if (
+            this.alreadyFollowUsers.some((followUserName) => {
+              return e.className.includes(followUserName);
+            })
+          ) {
+            e.style.display = "flex";
+          } else {
+            e.style.display = "none";
+          }
+        });
+        this.isOnlyFollow = !this.isOnlyFollow;
+        isFollowText.textContent = "全ての投稿を見る";
+      } else {
+        posts.forEach((e) => {
+          e.style.display = "flex";
+        });
+        this.isOnlyFollow = !this.isOnlyFollow;
+        isFollowText.innerText = `フォローユーザーの\n投稿のみを見る`;
+      }
     },
     signOut() {
       const auth = getAuth();
@@ -705,6 +737,7 @@ export default {
 .page-contents {
   margin-top: 18vh;
   padding-top: 2vh;
+  min-height: 80vh;
 }
 
 .title {
@@ -725,7 +758,8 @@ export default {
   margin-top: 8vh;
 }
 
-.post-box {
+.post-box,
+.review-post-box {
   border: #fff solid 2px;
   display: flex;
   flex-direction: column;
@@ -1138,5 +1172,16 @@ export default {
   font-size: 2vh;
   text-align: left;
   line-height: 2;
+}
+
+.follow-or-all {
+  width: 25vw;
+  margin-left: 3vw;
+  border: #fff solid 1px;
+  border-radius: 3vw;
+}
+.follow {
+  font-size: 2vw;
+  margin-left: 1vw;
 }
 </style>
