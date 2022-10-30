@@ -42,7 +42,7 @@
         </div>
         <div id="mine"></div>
       </div>
-      <div :style="{ display: isRankShow }">
+      <div :style="{ display: isRankShow }" class="mydata">
         <div class="title-box">
           <h1 class="title">Mydata</h1>
         </div>
@@ -51,28 +51,17 @@
             <div class="profile-area-head">
               <h3>Profile</h3>
               <h4>プロフィール</h4>
-            </div>
-            <div class="profile-area-content">
-              <div class="profile-name-box">
-                <h3>Name</h3>
-                <input type="text" class="name-input" />
-                <div class="edit-button button" @:click="edit">
+              <div class="edit-button button" @:click="edit">
+                <div class="button-in-box">
                   <h4>編 集</h4>
                   <h6>E d i t</h6>
                 </div>
               </div>
-              <div class="profile-message-box">
-                <h3>message</h3>
-                <textarea
-                  name="message"
-                  cols="30"
-                  rows="2"
-                  class="message-input"
-                ></textarea>
-                <div class="edit-button button" @:click="edit">
-                  <h4>編 集</h4>
-                  <h6>E d i t</h6>
-                </div>
+            </div>
+            <div class="profile-area-content">
+              <div class="profile-name-box">
+                <h3>Name</h3>
+                <input type="text" class="name-input" v-model="nameInput" />
               </div>
             </div>
           </div>
@@ -83,14 +72,21 @@
             </div>
             <div class="rank-area-content">
               <h3>共感{{ rankPoints }}ゲット！！</h3>
-              <div class="rank-show-box">あなたのランクは{{ grade }}です</div>
+              <div class="rank-show-box">
+                <h4>あなたのランクは<br />{{ grade }}<br />です</h4>
+              </div>
             </div>
           </div>
         </div>
       </div>
-      <div :style="{ display: isReviewShow }">
+      <div :style="{ display: isReviewShow }" class="review">
         <div class="title-box">
           <h1 class="title">Review</h1>
+        </div>
+        <div class="follow-or-all button" @click="onlyFollow">
+          <h4 class="follow" id="is-follow-text">
+            フォローユーザーの<br />投稿のみを見る
+          </h4>
         </div>
         <div id="other"></div>
       </div>
@@ -136,6 +132,7 @@ export default {
       alreadyLikedPosts: [],
       newLikedPosts: [],
       removeLikedPosts: [],
+      nameInput: "",
       rankPoints: 0,
       rankSyutoku: 0,
       grade: "",
@@ -144,6 +141,7 @@ export default {
       isRankShow: "none",
       isReviewShow: "none",
       unmountedOnce: true,
+      isOnlyFollow: false,
       changeLikeAndFollow: function () {
         if (
           this.logStatus === true &&
@@ -155,6 +153,8 @@ export default {
           const auth = getAuth();
           const docRef = doc(db, "users", auth.currentUser.uid);
           if (this.newLikedPosts.length !== 0) {
+            console.log("unionru!");
+            console.log(this.newLikedPosts);
             this.newLikedPosts.forEach((e) => {
               updateDoc(docRef, {
                 likedPosts: arrayUnion(e),
@@ -163,11 +163,13 @@ export default {
               updateDoc(countRef, {
                 likedCount: increment(1),
               });
+              this.alreadyLikedPosts.push(e);
+              console.log(this.alreadyLikedPosts[0].likedCount);
             });
           }
           if (this.removeLikedPosts.length !== 0) {
+            console.log("removerun!");
             this.removeLikedPosts.forEach((e) => {
-              e.likedCount = e.likedCount - 1;
               updateDoc(docRef, {
                 likedPosts: arrayRemove(e),
               });
@@ -191,11 +193,10 @@ export default {
               });
             });
           }
-          this.newLikedPosts =
-            this.removeLikedPosts =
-            this.newFollowUsers =
-            this.removeFollowUsers =
-              [];
+          this.newLikedPosts = [];
+          this.removeLikedPosts = [];
+          this.newFollowUsers = [];
+          this.removeFollowUsers = [];
         }
       },
     };
@@ -217,7 +218,7 @@ export default {
       const auth = getAuth();
       const q = query(
         collection(db, "posts"),
-        where("user", "==", auth.currentUser.uid)
+        where("uid", "==", auth.currentUser.uid)
       );
       const querySnapshot = await getDocs(q);
       querySnapshot.forEach((e) => {
@@ -227,9 +228,11 @@ export default {
           index: this.syutoku[0].index,
           title: this.syutoku[0].title,
           likedCount: this.syutoku[0].likedCount,
+          date: this.syutoku[0].date,
         });
       });
       for (let n = 0; n <= this.syutoku.length - 1; n++) {
+        const postDate = new Date(this.myPostData[n].date);
         const postCard = document.createElement("div");
         postCard.classList.add("post-box");
         // title
@@ -269,6 +272,7 @@ export default {
         const deleteInEnglish = document.createElement("h6");
         deleteButton.onclick = async function () {
           await deleteDoc(doc(db, "posts", `post${this.myPostData[n].index}`));
+          postCard.remove();
         }.bind(this);
         deleteButton.classList.add("delete-button", "button");
         buttonInBoxForDelete.classList.add("button-in-box");
@@ -280,7 +284,9 @@ export default {
 
         //timestamp
         const timeStamp = document.createElement("h4");
-        timeStamp.textContent = "YYYY/MM/DD";
+        timeStamp.textContent = `${postDate.getFullYear()}/${
+          postDate.getMonth() + 1
+        }/${postDate.getDate()}`;
         timeStamp.classList.add("time");
         deleteAndTime.append(deleteButton, timeStamp);
 
@@ -315,7 +321,7 @@ export default {
         //likedcount
         const likedCountArea = document.createElement("div");
         const postLikedCount = document.createElement("h4");
-        postLikedCount.textContent = "いいね" + this.myPostData[n].likedCount;
+        postLikedCount.textContent = "共感" + this.myPostData[n].likedCount;
         likedCountArea.classList.add("liked-count-area");
         likedCountArea.append(postLikedCount);
         otherArea.append(deleteAndTime, openCloseButton, likedCountArea);
@@ -331,16 +337,25 @@ export default {
     },
     async goRank() {
       const auth = getAuth();
-      const pointsRef = doc(db, "users", auth.currentUser.uid);
-      const docSnap = await getDoc(pointsRef);
+      const ref = doc(db, "users", auth.currentUser.uid);
+      const docSnap = await getDoc(ref);
       this.rankPoints = docSnap.data().rankPoints;
+      this.nameInput = docSnap.data().name;
       if (this.rankPoints <= 1) {
         this.grade = "ブロンズ";
-      } else if (this.rankPoints <= 10) {
+      } else if (this.rankPoints <= 100) {
         this.grade = "シルバー";
       } else {
         this.grade = "ゴールド";
       }
+    },
+    async edit() {
+      const auth = getAuth();
+      const ref = doc(db, "users", auth.currentUser.uid);
+      await updateDoc(ref, {
+        name: this.nameInput,
+      });
+      this.nameInput = "";
     },
     review() {
       this.isPostShow = this.isLogShow = this.isRankShow = "none";
@@ -352,10 +367,11 @@ export default {
       const userRef = doc(db, "users", auth.currentUser.uid);
       const docSnap = await getDoc(userRef);
       this.alreadyLikedPosts = docSnap.data().likedPosts;
+      console.log(this.alreadyLikedPosts);
       this.alreadyFollowUsers = docSnap.data().followUsers;
       const q = query(
         collection(db, "posts"),
-        where("user", "!=", auth.currentUser.uid)
+        where("uid", "!=", auth.currentUser.uid)
       );
       const querySnapshot = await getDocs(q);
       querySnapshot.forEach((e) => {
@@ -365,14 +381,17 @@ export default {
           index: this.syutokuOther[0].index,
           title: this.syutokuOther[0].title,
           user: this.syutokuOther[0].user,
+          uid: this.syutokuOther[0].uid,
           likedCount: this.syutokuOther[0].likedCount,
+          date: this.syutokuOther[0].date,
         };
         let varIsLike = this.alreadyLikedPosts.some((e) => {
           return e.index == postData.index;
         });
+        const postDate = new Date(postData.date);
         const other = document.getElementById("other");
         const postCard = document.createElement("div");
-        postCard.classList.add("post-box");
+        postCard.classList.add("review-post-box");
         //こ
         //こ
         //か
@@ -432,16 +451,23 @@ export default {
         const followInEnglish = document.createElement("h6");
         buttonInBoxForFollow.classList.add("button-in-box");
         followButton.classList.add("follow-button", "button");
-        followInEnglish.textContent = "Follow";
-        followInJapanese.textContent = "フォロー";
         buttonInBoxForFollow.append(followInJapanese, followInEnglish);
         followButton.append(buttonInBoxForFollow);
         let isFollow = this.alreadyFollowUsers.some((e) => {
           return e == postData.user;
         });
+        if (isFollow === true) {
+          postUser.style.color = "#ff0000";
+          followInEnglish.textContent = "Unfollow";
+          followInJapanese.textContent = "フォロー解除";
+        } else {
+          followInEnglish.textContent = "Follow";
+          followInJapanese.textContent = "フォロー";
+        }
         followButton.onclick = function () {
           isFollow = !isFollow;
           if (isFollow == true) {
+            postUser.style.color = "#ff0000";
             followInEnglish.textContent = "Unfollow";
             followInJapanese.textContent = "フォロー解除";
             if (
@@ -458,6 +484,7 @@ export default {
           } else {
             followInEnglish.textContent = "Follow";
             followInJapanese.textContent = "フォローする";
+            postUser.style.color = "#ffffff";
             if (
               this.alreadyFollowUsers.some((e) => {
                 return e == postData.user;
@@ -487,7 +514,9 @@ export default {
         // deleteButton.style.display = "none";
         //timestamp
         const timeStamp = document.createElement("h4");
-        timeStamp.textContent = "YYYY/MM/DD";
+        timeStamp.textContent = `${postDate.getFullYear()}/${
+          postDate.getMonth() + 1
+        }/${postDate.getDate()}`;
         timeStamp.classList.add("time");
 
         followArea.append(postUser, followButton);
@@ -519,19 +548,28 @@ export default {
         buttonInBoxForOC.append(openCloseInJapanese, openCloseInEnglish);
         openCloseButton.append(buttonInBoxForOC);
 
-        //likearea
-        const likeArea = document.createElement("div");
-        likeArea.classList.add("like-area");
+        //likedcount
+        const likedCountArea = document.createElement("div");
+        const postLikedCount = document.createElement("h4");
+        postLikedCount.textContent = postData.likedCount;
+        likedCountArea.classList.add("liked-count-area");
+        likedCountArea.append(postLikedCount);
 
         //likeButton
         const likeButton = document.createElement("div");
-        const isLike = document.createElement("h4");
-        likeButton.textContent = "いいね";
-        isLike.textContent = varIsLike;
-        likeButton.onclick = function () {
+        likeButton.textContent = "共感";
+        if (varIsLike === true) {
+          likeButton.style.color = "#ff0000";
+        }
+
+        //likearea
+        const likeArea = document.createElement("div");
+        likeArea.classList.add("like-area", "button");
+        likeArea.onclick = function () {
           varIsLike = !varIsLike;
-          isLike.textContent = varIsLike;
           if (varIsLike === true) {
+            likeButton.style.color = "#ff0000";
+            postLikedCount.textContent = Number(postLikedCount.textContent) + 1;
             if (
               this.alreadyLikedPosts.some((e) => {
                 return e.index == postData.index;
@@ -541,31 +579,33 @@ export default {
                 return JSON.stringify(e) !== JSON.stringify(postData);
               });
             } else {
-              this.newLikedPosts.push(postData);
+              const card = postData;
+              card.likedCount = card.likedCount + 1;
+              this.newLikedPosts.push(card);
             }
+            console.log("truerun!");
           } else {
+            postLikedCount.textContent = Number(postLikedCount.textContent) - 1;
+            likeButton.style.color = "#ffffff";
             if (
               this.alreadyLikedPosts.some((e) => {
                 return e.index == postData.index;
               })
             ) {
+              console.log(this.newLikedPosts);
               this.removeLikedPosts.push(postData);
+              console.log(this.newLikedPosts);
             } else {
               this.newLikedPosts = this.newLikedPosts.filter((e) => {
                 return JSON.stringify(e) !== JSON.stringify(postData);
               });
+              console.log("newrun!");
             }
           }
+          console.log(this.newLikedPosts);
         }.bind(this);
 
-        //likedcount
-        const likedCountArea = document.createElement("div");
-        const postLikedCount = document.createElement("h4");
-        postLikedCount.textContent = postData.likedCount;
-        likedCountArea.classList.add("liked-count-area");
-        likedCountArea.append(postLikedCount);
-
-        likeArea.append(likeButton, isLike, likedCountArea);
+        likeArea.append(likeButton, likedCountArea);
         otherArea.append(followAndTime, openCloseButton, likeArea);
 
         //append
@@ -575,6 +615,7 @@ export default {
           otherArea
           // deleteButton,
         );
+        postCard.classList.add(`${postData.user}`);
         //こ
         //こ
         //ま
@@ -584,6 +625,31 @@ export default {
         //ー
         other.append(postCard);
       });
+    },
+    onlyFollow() {
+      let posts = document.querySelectorAll(`.review-post-box`);
+      const isFollowText = document.querySelector(`#is-follow-text`);
+      if (this.isOnlyFollow === false) {
+        posts.forEach((e) => {
+          if (
+            this.alreadyFollowUsers.some((followUserName) => {
+              return e.className.includes(followUserName);
+            })
+          ) {
+            e.style.display = "flex";
+          } else {
+            e.style.display = "none";
+          }
+        });
+        this.isOnlyFollow = !this.isOnlyFollow;
+        isFollowText.textContent = "全ての投稿を見る";
+      } else {
+        posts.forEach((e) => {
+          e.style.display = "flex";
+        });
+        this.isOnlyFollow = !this.isOnlyFollow;
+        isFollowText.innerText = `フォローユーザーの\n投稿のみを見る`;
+      }
     },
     signOut() {
       const auth = getAuth();
@@ -607,6 +673,7 @@ export default {
     });
   },
   async unmounted() {
+    alert("unmounted");
     this.changeLikeAndFollow();
     const auth = getAuth();
     const docRef = doc(db, "users", auth.currentUser.uid);
@@ -631,6 +698,13 @@ export default {
 .home {
   background-color: #a7bbd2;
 }
+
+.button:hover {
+  transform: scale(1.1);
+  transition-duration: 0.3s;
+  cursor: pointer;
+}
+
 .mypage-nav {
   display: flex;
   justify-content: space-around;
@@ -700,11 +774,13 @@ export default {
   position: fixed;
   top: 20vh;
   right: 10px;
+  z-index: 10;
 }
 
 .page-contents {
   margin-top: 18vh;
   padding-top: 2vh;
+  min-height: 80vh;
 }
 
 .title {
@@ -725,7 +801,8 @@ export default {
   margin-top: 8vh;
 }
 
-.post-box {
+.post-box,
+.review-post-box {
   border: #fff solid 2px;
   display: flex;
   flex-direction: column;
@@ -895,11 +972,6 @@ export default {
   border-radius: 1.8vh;
   height: 7.2vh;
 }
-.button:hover {
-  transform: scale(1.1);
-  transition-duration: 0.3s;
-  cursor: pointer;
-}
 
 /* ここからreview */
 .post-user {
@@ -958,5 +1030,194 @@ export default {
 .follow-area {
   display: flex;
   align-items: center;
+}
+.like-area {
+  border: #fff solid 1px;
+  border-radius: 1vh;
+  padding: 2vh;
+}
+
+/* ここからmydata */
+.mydata {
+  height: 76vh;
+}
+.mydata-box {
+  height: 55vh;
+  margin: 5.7vh auto 0 auto;
+  width: 80vw;
+  border: white solid 2px;
+  border-radius: 10vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+.profile-area h3,
+.profile-area h4,
+.profile-area h6,
+.profile-area input {
+  display: block;
+}
+.profile-area,
+.profile-name-box,
+.profile-message-box,
+.rank-area {
+  display: flex;
+  justify-content: flex-start;
+}
+.profile-area-content {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.profile-area {
+  height: 35vh;
+  position: relative;
+}
+.profile-area::after {
+  content: "";
+  display: block;
+  background-color: #fff;
+  width: 70vw;
+  height: 0.2vh;
+  position: absolute;
+  left: 5vh;
+  top: calc(100% + 1vw);
+}
+.profile-area-head,
+.rank-area-head {
+  margin-top: 5vh;
+  margin-left: 5vh;
+  position: relative;
+}
+.profile-area-content,
+.rank-area-content {
+  margin-top: 5vh;
+  margin-right: 5vh;
+  margin-left: 10vh;
+}
+.profile-area-head h3,
+.rank-area-head h3 {
+  font-size: 4vw;
+}
+.profile-area-head h3::after,
+.rank-area-head h3::after {
+  content: "";
+  display: block;
+  background-color: #fff;
+  width: 12vw;
+  height: 0.2vh;
+  margin: 1vh auto 1vh auto;
+}
+.profile-area-head h4,
+.rank-area-head h4 {
+  font-size: 1vw;
+}
+.profile-area-head::after {
+  content: "";
+  display: block;
+  background-color: #fff;
+  width: 0.3vw;
+  height: calc(25vh);
+  margin-left: auto;
+  margin-right: auto;
+  position: absolute;
+  top: 0;
+  left: calc(100% + 5vh);
+}
+.profile-name-box {
+  align-items: center;
+}
+
+.profile-name-box h3 {
+  font-size: 3vw;
+  margin-right: 3vw;
+}
+.name-input {
+  width: 25vw;
+}
+.edit-button {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  width: 14vh;
+  height: 9vh;
+  background-color: #3c3c3c;
+  color: #fff;
+  margin-top: 1.5vh;
+  margin-left: auto;
+  margin-right: auto;
+  padding: 0.5vh;
+  border-radius: 2vh;
+}
+.edit-button h4 {
+  display: inline-block;
+  margin: 0;
+  margin-top: 1vh;
+  font-size: 2vh;
+  line-height: 1.25vh;
+}
+.edit-button h4::after {
+  content: "";
+  display: inline-block;
+  background-color: #fff;
+  width: 10vh;
+  height: 1px;
+  margin-left: auto;
+  margin-right: auto;
+  margin-bottom: 0vh;
+}
+.edit-button h6 {
+  display: inline-block;
+  margin: 0;
+  margin-bottom: 1vh;
+  font-size: 1.25vh;
+  letter-spacing: 0.1em;
+}
+.rank-area-head::after {
+  content: "";
+  display: block;
+  background-color: #fff;
+  width: 0.3vw;
+  height: calc(12vh);
+  margin-left: auto;
+  margin-right: auto;
+  position: absolute;
+  top: 0;
+  left: calc(100% + 5vh);
+}
+.rank-area {
+  height: 20vh;
+  margin-bottom: 5vh;
+}
+.rank-area-content {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+.rank-area-content h3 {
+  display: block;
+  font-size: 3vw;
+}
+.rank-show-box {
+  margin-left: 10vw;
+  border: #fff solid 1px;
+  border-radius: 3vw;
+  padding: 1.5vw;
+}
+.rank-area-content h4 {
+  font-size: 2vh;
+  text-align: left;
+  line-height: 2;
+}
+
+.follow-or-all {
+  width: 25vw;
+  margin-left: 3vw;
+  border: #fff solid 1px;
+  border-radius: 3vw;
+}
+.follow {
+  font-size: 2vw;
+  margin-left: 1vw;
 }
 </style>

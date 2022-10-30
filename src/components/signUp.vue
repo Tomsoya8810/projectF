@@ -55,7 +55,7 @@ export default {
         })
         .then(() => {
           const userData = {
-            profile: { name: "", comments: "", icon: "" },
+            name: auth.currentUser.uid,
             rankPoints: 0,
             followUsers: [],
             likedPosts: [],
@@ -215,6 +215,7 @@ h4 span {
   margin-right: auto;
   margin-top: 3vh;
   padding: 1vh;
+  border-radius: 2vh;
 }
 .register-button h3 {
   display: inline-block;
