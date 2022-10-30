@@ -16,7 +16,7 @@
         <textarea cols="30" rows="5" v-model="postContent"></textarea>
       </div>
     </div>
-    <div class="post-button button" @click="gopost">
+    <div class="post-button button" @click="goPost" @click.once="goPostOnce">
       <div class="button-in-box">
         <h3>投 稿</h3>
         <h5>P o s t</h5>
@@ -33,6 +33,7 @@ import {
   setDoc,
   collection,
   getDocs,
+  getDoc,
   orderBy,
   limit,
   query,
@@ -43,6 +44,7 @@ export default {
   name: "goPostVue",
   data() {
     return {
+      userName: "",
       postTitle: "",
       postContent: "",
       newIndex: 0,
@@ -50,33 +52,45 @@ export default {
     };
   },
   methods: {
-    async gopost() {
-      const syutoku = [];
+    async goPostOnce() {
       const auth = getAuth();
-      let count = 0;
-      const colRef = collection(db, "posts");
-      const lengthRef = await getDocs(colRef);
-      lengthRef.forEach((doc) => {
-        syutoku.push(doc.data());
-      });
-      await getDocs(query(colRef, orderBy("index", "desc"), limit(1))).then(
-        (e) => {
-          e.forEach((doc) => {
-            this.newIndex = doc.data().index + 1;
-          });
-        }
-      );
-      const data = {
-        user: auth.currentUser.uid,
-        title: this.postTitle,
-        content: this.postContent,
-        // comment: this.postComment,
-        index: this.newIndex + count,
-        likedCount: 0,
-      };
-      await setDoc(doc(colRef, `post${data.index}`), data);
-      this.postContent = this.postTitle = "";
-      count = count + 1;
+      const userRef = doc(db, "users", auth.currentUser.uid);
+      const docSnap = await getDoc(userRef);
+      this.userName = docSnap.data().name;
+    },
+    async goPost() {
+      if (this.postTitle !== "" && this.postContent !== "") {
+        const auth = getAuth();
+        const syutoku = [];
+        let count = 0;
+        const colRef = collection(db, "posts");
+        const lengthRef = await getDocs(colRef);
+        lengthRef.forEach((doc) => {
+          syutoku.push(doc.data());
+        });
+        await getDocs(query(colRef, orderBy("index", "desc"), limit(1))).then(
+          (e) => {
+            e.forEach((doc) => {
+              this.newIndex = doc.data().index + 1;
+            });
+          }
+        );
+        const data = {
+          user: this.userName,
+          uid: auth.currentUser.uid,
+          title: this.postTitle,
+          content: this.postContent,
+          // comment: this.postComment,
+          index: this.newIndex + count,
+          likedCount: 0,
+          date: Date.now(),
+        };
+        await setDoc(doc(colRef, `post${data.index}`), data);
+        this.postContent = this.postTitle = "";
+        count = count + 1;
+      } else {
+        alert("未入力の部分があります。");
+      }
     },
   },
 };

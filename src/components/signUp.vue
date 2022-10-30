@@ -55,7 +55,7 @@ export default {
         })
         .then(() => {
           const userData = {
-            profile: { name: "", comments: "", icon: "" },
+            name: auth.currentUser.uid,
             rankPoints: 0,
             followUsers: [],
             likedPosts: [],
