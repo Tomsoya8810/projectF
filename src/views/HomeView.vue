@@ -153,29 +153,28 @@ export default {
           const auth = getAuth();
           const docRef = doc(db, "users", auth.currentUser.uid);
           if (this.newLikedPosts.length !== 0) {
-            console.log("unionru!");
-            console.log(this.newLikedPosts);
             this.newLikedPosts.forEach((e) => {
               updateDoc(docRef, {
                 likedPosts: arrayUnion(e),
               });
-              const countRef = doc(db, "posts", `post${e.index}`);
+              const countRef = doc(db, "posts", `post${e}`);
               updateDoc(countRef, {
                 likedCount: increment(1),
               });
               this.alreadyLikedPosts.push(e);
-              console.log(this.alreadyLikedPosts[0].likedCount);
             });
           }
           if (this.removeLikedPosts.length !== 0) {
-            console.log("removerun!");
             this.removeLikedPosts.forEach((e) => {
               updateDoc(docRef, {
                 likedPosts: arrayRemove(e),
               });
-              const countRef = doc(db, "posts", `post${e.index}`);
+              const countRef = doc(db, "posts", `post${e}`);
               updateDoc(countRef, {
                 likedCount: increment(-1),
+              });
+              this.alreadyLikedPosts = this.alreadyLikedPosts.filter((ele) => {
+                return ele !== e;
               });
             });
           }
@@ -209,7 +208,6 @@ export default {
     },
     log() {
       this.isPostShow = this.isRankShow = this.isReviewShow = "none";
-      console.log(this.isPostShow);
       this.isLogShow = "block";
       this.changeLikeAndFollow();
     },
@@ -367,7 +365,6 @@ export default {
       const userRef = doc(db, "users", auth.currentUser.uid);
       const docSnap = await getDoc(userRef);
       this.alreadyLikedPosts = docSnap.data().likedPosts;
-      console.log(this.alreadyLikedPosts);
       this.alreadyFollowUsers = docSnap.data().followUsers;
       const q = query(
         collection(db, "posts"),
@@ -386,7 +383,7 @@ export default {
           date: this.syutokuOther[0].date,
         };
         let varIsLike = this.alreadyLikedPosts.some((e) => {
-          return e.index == postData.index;
+          return e == postData.index;
         });
         const postDate = new Date(postData.date);
         const other = document.getElementById("other");
@@ -572,37 +569,30 @@ export default {
             postLikedCount.textContent = Number(postLikedCount.textContent) + 1;
             if (
               this.alreadyLikedPosts.some((e) => {
-                return e.index == postData.index;
+                return e == postData.index;
               })
             ) {
               this.removeLikedPosts = this.removeLikedPosts.filter((e) => {
-                return JSON.stringify(e) !== JSON.stringify(postData);
+                return e !== postData.index;
               });
             } else {
-              const card = postData;
-              card.likedCount = card.likedCount + 1;
-              this.newLikedPosts.push(card);
+              this.newLikedPosts.push(postData.index);
             }
-            console.log("truerun!");
           } else {
             postLikedCount.textContent = Number(postLikedCount.textContent) - 1;
             likeButton.style.color = "#ffffff";
             if (
               this.alreadyLikedPosts.some((e) => {
-                return e.index == postData.index;
+                return e == postData.index;
               })
             ) {
-              console.log(this.newLikedPosts);
-              this.removeLikedPosts.push(postData);
-              console.log(this.newLikedPosts);
+              this.removeLikedPosts.push(postData.index);
             } else {
               this.newLikedPosts = this.newLikedPosts.filter((e) => {
-                return JSON.stringify(e) !== JSON.stringify(postData);
+                return e !== postData.index;
               });
-              console.log("newrun!");
             }
           }
-          console.log(this.newLikedPosts);
         }.bind(this);
 
         likeArea.append(likeButton, likedCountArea);
@@ -673,7 +663,6 @@ export default {
     });
   },
   async unmounted() {
-    alert("unmounted");
     this.changeLikeAndFollow();
     const auth = getAuth();
     const docRef = doc(db, "users", auth.currentUser.uid);
