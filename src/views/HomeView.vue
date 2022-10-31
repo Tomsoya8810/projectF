@@ -183,6 +183,7 @@ export default {
               updateDoc(docRef, {
                 followUsers: arrayUnion(e),
               });
+              this.alreadyFollowUsers.push(e);
             });
           }
           if (this.removeFollowUsers.length !== 0) {
@@ -190,6 +191,11 @@ export default {
               updateDoc(docRef, {
                 followUsers: arrayRemove(e),
               });
+              this.alreadyFollowUsers = this.alreadyFollowUsers.filter(
+                (ele) => {
+                  return ele !== e;
+                }
+              );
             });
           }
           this.newLikedPosts = [];
@@ -445,13 +451,15 @@ export default {
         const followButton = document.createElement("div");
         const buttonInBoxForFollow = document.createElement("div");
         const followInJapanese = document.createElement("h4");
+        followInJapanese.classList.add("follow-in-japanese");
         const followInEnglish = document.createElement("h6");
+        followInEnglish.classList.add("follow-in-english");
         buttonInBoxForFollow.classList.add("button-in-box");
         followButton.classList.add("follow-button", "button");
         buttonInBoxForFollow.append(followInJapanese, followInEnglish);
         followButton.append(buttonInBoxForFollow);
         let isFollow = this.alreadyFollowUsers.some((e) => {
-          return e == postData.user;
+          return e == postData.uid;
         });
         if (isFollow === true) {
           postUser.style.color = "#ff0000";
@@ -463,34 +471,58 @@ export default {
         }
         followButton.onclick = function () {
           isFollow = !isFollow;
+          const changeUser = document.querySelectorAll(
+            `.${postData.uid} .post-user`
+          );
+          const changeInEnglish = document.querySelectorAll(
+            `.${postData.uid} .follow-in-english`
+          );
+          const changeInJapanese = document.querySelectorAll(
+            `.${postData.uid} .follow-in-japanese`
+          );
+          console.log(changeUser);
+          console.log(changeInEnglish);
+          console.log(changeInJapanese);
           if (isFollow == true) {
-            postUser.style.color = "#ff0000";
-            followInEnglish.textContent = "Unfollow";
-            followInJapanese.textContent = "フォロー解除";
+            changeUser.forEach((e) => {
+              e.style.color = "#ff0000";
+            });
+            changeInEnglish.forEach((e) => {
+              e.textContent = "Unfollow";
+            });
+            changeInJapanese.forEach((e) => {
+              e.textContent = "フォロー解除";
+            });
             if (
               this.alreadyFollowUsers.some((e) => {
-                return e == postData.user;
+                return e == postData.uid;
               })
             ) {
               this.removeFollowUsers = this.removeFollowUsers.filter((e) => {
-                return JSON.stringify(e) !== JSON.stringify(postData.user);
+                return e !== postData.uid;
               });
             } else {
-              this.newFollowUsers.push(postData.user);
+              this.newFollowUsers.push(postData.uid);
             }
           } else {
-            followInEnglish.textContent = "Follow";
-            followInJapanese.textContent = "フォローする";
-            postUser.style.color = "#ffffff";
+            changeUser.forEach((e) => {
+              e.style.color = "#ffffff";
+            });
+            changeInEnglish.forEach((e) => {
+              e.textContent = "Follow";
+            });
+            changeInJapanese.forEach((e) => {
+              e.textContent = "フォローする";
+            });
             if (
               this.alreadyFollowUsers.some((e) => {
-                return e == postData.user;
+                return e == postData.uid;
               })
             ) {
-              this.removeFollowUsers.push(postData.user);
+              this.removeFollowUsers.push(postData.uid);
             } else {
               this.newFollowUsers = this.newFollowUsers.filter((e) => {
-                return JSON.stringify(e) !== JSON.stringify(postData.user);
+                return e !== postData.uid;
               });
             }
           }
@@ -605,7 +637,7 @@ export default {
           otherArea
           // deleteButton,
         );
-        postCard.classList.add(`${postData.user}`);
+        postCard.classList.add(`${postData.uid}`);
         //こ
         //こ
         //ま
