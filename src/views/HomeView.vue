@@ -153,29 +153,28 @@ export default {
           const auth = getAuth();
           const docRef = doc(db, "users", auth.currentUser.uid);
           if (this.newLikedPosts.length !== 0) {
-            console.log("unionru!");
-            console.log(this.newLikedPosts);
             this.newLikedPosts.forEach((e) => {
               updateDoc(docRef, {
                 likedPosts: arrayUnion(e),
               });
-              const countRef = doc(db, "posts", `post${e.index}`);
+              const countRef = doc(db, "posts", `post${e}`);
               updateDoc(countRef, {
                 likedCount: increment(1),
               });
               this.alreadyLikedPosts.push(e);
-              console.log(this.alreadyLikedPosts[0].likedCount);
             });
           }
           if (this.removeLikedPosts.length !== 0) {
-            console.log("removerun!");
             this.removeLikedPosts.forEach((e) => {
               updateDoc(docRef, {
                 likedPosts: arrayRemove(e),
               });
-              const countRef = doc(db, "posts", `post${e.index}`);
+              const countRef = doc(db, "posts", `post${e}`);
               updateDoc(countRef, {
                 likedCount: increment(-1),
+              });
+              this.alreadyLikedPosts = this.alreadyLikedPosts.filter((ele) => {
+                return ele !== e;
               });
             });
           }
@@ -184,6 +183,7 @@ export default {
               updateDoc(docRef, {
                 followUsers: arrayUnion(e),
               });
+              this.alreadyFollowUsers.push(e);
             });
           }
           if (this.removeFollowUsers.length !== 0) {
@@ -191,6 +191,11 @@ export default {
               updateDoc(docRef, {
                 followUsers: arrayRemove(e),
               });
+              this.alreadyFollowUsers = this.alreadyFollowUsers.filter(
+                (ele) => {
+                  return ele !== e;
+                }
+              );
             });
           }
           this.newLikedPosts = [];
@@ -209,7 +214,6 @@ export default {
     },
     log() {
       this.isPostShow = this.isRankShow = this.isReviewShow = "none";
-      console.log(this.isPostShow);
       this.isLogShow = "block";
       this.changeLikeAndFollow();
     },
@@ -367,7 +371,6 @@ export default {
       const userRef = doc(db, "users", auth.currentUser.uid);
       const docSnap = await getDoc(userRef);
       this.alreadyLikedPosts = docSnap.data().likedPosts;
-      console.log(this.alreadyLikedPosts);
       this.alreadyFollowUsers = docSnap.data().followUsers;
       const q = query(
         collection(db, "posts"),
@@ -386,7 +389,7 @@ export default {
           date: this.syutokuOther[0].date,
         };
         let varIsLike = this.alreadyLikedPosts.some((e) => {
-          return e.index == postData.index;
+          return e == postData.index;
         });
         const postDate = new Date(postData.date);
         const other = document.getElementById("other");
@@ -448,13 +451,15 @@ export default {
         const followButton = document.createElement("div");
         const buttonInBoxForFollow = document.createElement("div");
         const followInJapanese = document.createElement("h4");
+        followInJapanese.classList.add("follow-in-japanese");
         const followInEnglish = document.createElement("h6");
+        followInEnglish.classList.add("follow-in-english");
         buttonInBoxForFollow.classList.add("button-in-box");
         followButton.classList.add("follow-button", "button");
         buttonInBoxForFollow.append(followInJapanese, followInEnglish);
         followButton.append(buttonInBoxForFollow);
         let isFollow = this.alreadyFollowUsers.some((e) => {
-          return e == postData.user;
+          return e == postData.uid;
         });
         if (isFollow === true) {
           postUser.style.color = "#ff0000";
@@ -466,34 +471,58 @@ export default {
         }
         followButton.onclick = function () {
           isFollow = !isFollow;
+          const changeUser = document.querySelectorAll(
+            `.${postData.uid} .post-user`
+          );
+          const changeInEnglish = document.querySelectorAll(
+            `.${postData.uid} .follow-in-english`
+          );
+          const changeInJapanese = document.querySelectorAll(
+            `.${postData.uid} .follow-in-japanese`
+          );
+          console.log(changeUser);
+          console.log(changeInEnglish);
+          console.log(changeInJapanese);
           if (isFollow == true) {
-            postUser.style.color = "#ff0000";
-            followInEnglish.textContent = "Unfollow";
-            followInJapanese.textContent = "フォロー解除";
+            changeUser.forEach((e) => {
+              e.style.color = "#ff0000";
+            });
+            changeInEnglish.forEach((e) => {
+              e.textContent = "Unfollow";
+            });
+            changeInJapanese.forEach((e) => {
+              e.textContent = "フォロー解除";
+            });
             if (
               this.alreadyFollowUsers.some((e) => {
-                return e == postData.user;
+                return e == postData.uid;
               })
             ) {
               this.removeFollowUsers = this.removeFollowUsers.filter((e) => {
-                return JSON.stringify(e) !== JSON.stringify(postData.user);
+                return e !== postData.uid;
               });
             } else {
-              this.newFollowUsers.push(postData.user);
+              this.newFollowUsers.push(postData.uid);
             }
           } else {
-            followInEnglish.textContent = "Follow";
-            followInJapanese.textContent = "フォローする";
-            postUser.style.color = "#ffffff";
+            changeUser.forEach((e) => {
+              e.style.color = "#ffffff";
+            });
+            changeInEnglish.forEach((e) => {
+              e.textContent = "Follow";
+            });
+            changeInJapanese.forEach((e) => {
+              e.textContent = "フォローする";
+            });
             if (
               this.alreadyFollowUsers.some((e) => {
-                return e == postData.user;
+                return e == postData.uid;
               })
             ) {
-              this.removeFollowUsers.push(postData.user);
+              this.removeFollowUsers.push(postData.uid);
             } else {
               this.newFollowUsers = this.newFollowUsers.filter((e) => {
-                return JSON.stringify(e) !== JSON.stringify(postData.user);
+                return e !== postData.uid;
               });
             }
           }
@@ -572,37 +601,30 @@ export default {
             postLikedCount.textContent = Number(postLikedCount.textContent) + 1;
             if (
               this.alreadyLikedPosts.some((e) => {
-                return e.index == postData.index;
+                return e == postData.index;
               })
             ) {
               this.removeLikedPosts = this.removeLikedPosts.filter((e) => {
-                return JSON.stringify(e) !== JSON.stringify(postData);
+                return e !== postData.index;
               });
             } else {
-              const card = postData;
-              card.likedCount = card.likedCount + 1;
-              this.newLikedPosts.push(card);
+              this.newLikedPosts.push(postData.index);
             }
-            console.log("truerun!");
           } else {
             postLikedCount.textContent = Number(postLikedCount.textContent) - 1;
             likeButton.style.color = "#ffffff";
             if (
               this.alreadyLikedPosts.some((e) => {
-                return e.index == postData.index;
+                return e == postData.index;
               })
             ) {
-              console.log(this.newLikedPosts);
-              this.removeLikedPosts.push(postData);
-              console.log(this.newLikedPosts);
+              this.removeLikedPosts.push(postData.index);
             } else {
               this.newLikedPosts = this.newLikedPosts.filter((e) => {
-                return JSON.stringify(e) !== JSON.stringify(postData);
+                return e !== postData.index;
               });
-              console.log("newrun!");
             }
           }
-          console.log(this.newLikedPosts);
         }.bind(this);
 
         likeArea.append(likeButton, likedCountArea);
@@ -615,7 +637,7 @@ export default {
           otherArea
           // deleteButton,
         );
-        postCard.classList.add(`${postData.user}`);
+        postCard.classList.add(`${postData.uid}`);
         //こ
         //こ
         //ま
@@ -673,7 +695,6 @@ export default {
     });
   },
   async unmounted() {
-    alert("unmounted");
     this.changeLikeAndFollow();
     const auth = getAuth();
     const docRef = doc(db, "users", auth.currentUser.uid);
